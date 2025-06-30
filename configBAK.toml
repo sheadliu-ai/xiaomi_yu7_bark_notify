@@ -4,3 +4,4 @@ userId = ""
 Cookie = ""
 device_token = ""
 deliveryTimeLatest = ""
+interval = 5

@@ -5,6 +5,8 @@ from datetime import datetime
 import toml
 import os
 import sys
+import schedule
+import time
 
 BIN = os.path.dirname(os.path.realpath(__file__))
 config_path = os.path.join(BIN, "config.toml")
@@ -18,6 +20,7 @@ def load_config():
             config["api"]["userId"],
             config["api"]["Cookie"],
             config["api"]["device_token"],
+            config["api"]["interval"],
         )
     except:
         print("请检查config.toml文件的参数是否正确！")
@@ -98,13 +101,7 @@ def send_bark_message(token, message):
     return response.status_code == 200
 
 
-if __name__ == "__main__":
-    orderId, userId, Cookie, device_token = load_config()
-
-    old_delivery_time = load_delivery_time()
-    # print("old_delivery_time:", old_delivery_time)
-    delivery_time, message = get_delivery_time(orderId, userId, Cookie)
-    # print("new_delivery_time:", delivery_time)
+def main():
     if delivery_time != old_delivery_time:
         print("交付时间已更新！")
         save_delivery_time(delivery_time)  # 更新配置文件
@@ -114,3 +111,19 @@ if __name__ == "__main__":
             print("消息发送失败。")
     else:
         print("交付时间没有更新。")
+
+
+if __name__ == "__main__":
+    orderId, userId, Cookie, device_token, interval = load_config()
+
+    old_delivery_time = load_delivery_time()
+    # print("old_delivery_time:", old_delivery_time)
+    delivery_time, message = get_delivery_time(orderId, userId, Cookie)
+    # print("new_delivery_time:", delivery_time)
+    main()
+    # 每N分钟执行一次
+    schedule.every(interval).minutes.do(main)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
