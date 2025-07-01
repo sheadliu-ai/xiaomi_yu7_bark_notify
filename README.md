@@ -1,5 +1,5 @@
 # [xiaomi yu7 notify](https://github.com/arthurfsy2/xiaomi_yu7_bark_notify)
-
+![img](/img/para_succeed.jpg)
 一个可以自动获取小米YU7交付进度，通过Bark通知给用户的脚本。
 
 PS：本脚本采用Cookie的方式进行获取数据，可能存在Cookie过期的情况，需要手动更新

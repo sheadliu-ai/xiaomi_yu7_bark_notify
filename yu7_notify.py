@@ -149,7 +149,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--interval", type=str, help="interval")
     args = parser.parse_args()
-    print(args)
+    # print(args)
     orderId, userId, Cookie, device_token, interval = load_config()
 
     old_delivery_time = load_delivery_time()
