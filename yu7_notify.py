@@ -7,13 +7,20 @@ import os
 import sys
 import schedule
 import time
+import argparse
 
 BIN = os.path.dirname(os.path.realpath(__file__))
 config_path = os.path.join(BIN, "config.toml")
 
 
 def load_config():
+
+    if args.cookie:
+        print("使用命令行参数传入数据...")
+        return args.orderId, args.userId, args.cookie, args.device_token, args.interval
+
     try:
+        print("使用config.toml传入数据...")
         config = toml.load(config_path)
         return (
             config["api"]["orderId"],
@@ -51,6 +58,9 @@ def get_delivery_time(orderId, userId, Cookie):
     orderStatusName = statusInfo.get("orderStatusName")
 
     delivery_time = orderTimeInfo.get("deliveryTime")
+    if not delivery_time:
+        print("请检查参数是否正确！")
+        sys.exit()
     add_time = orderTimeInfo.get("addTime")
     pay_time = orderTimeInfo.get("payTime")
     lock_time = orderTimeInfo.get("lockTime")
@@ -63,10 +73,15 @@ def get_delivery_time(orderId, userId, Cookie):
     return delivery_time, text
 
 
-def save_delivery_time(delivery_time):
+def save_delivery_time(delivery_time, interval="5"):
     # 先加载当前的配置
     config = toml.load(config_path)
-
+    if args.cookie:
+        config["api"]["orderId"] = ""
+        config["api"]["userId"] = ""
+        config["api"]["Cookie"] = ""
+        config["api"]["device_token"] = ""
+        config["api"]["interval"] = args.interval if args.interval else interval
     # 更新 deliveryTimeLatest
     config["api"]["deliveryTimeLatest"] = delivery_time
 
@@ -114,16 +129,29 @@ def main():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Load configuration from command line."
+    )
+    parser.add_argument("--orderId", type=str, help="Order ID")
+    parser.add_argument("--userId", type=str, help="User ID")
+    parser.add_argument("--cookie", type=str, help="User Cookie")
+    parser.add_argument(
+        "--device_token",
+        type=str,
+        help="Device Token",
+    )
+    parser.add_argument("--interval", type=str, help="interval")
+    args = parser.parse_args()
     orderId, userId, Cookie, device_token, interval = load_config()
 
     old_delivery_time = load_delivery_time()
     # print("old_delivery_time:", old_delivery_time)
     delivery_time, message = get_delivery_time(orderId, userId, Cookie)
-    # print("new_delivery_time:", delivery_time)
+
     main()
     # 每N分钟执行一次
-    schedule.every(interval).minutes.do(main)
+    # schedule.every(interval).minutes.do(main)
 
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(1)
