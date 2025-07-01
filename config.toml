@@ -1,0 +1,7 @@
+[api]
+orderId = ""
+userId = ""
+Cookie = ""
+device_token = ""
+deliveryTimeLatest = "锁定订单后预计23-26周交付"
+interval = "5"
