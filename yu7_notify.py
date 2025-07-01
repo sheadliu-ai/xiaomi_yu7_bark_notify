@@ -59,7 +59,10 @@ def get_delivery_time(orderId, userId, Cookie):
 
     delivery_time = orderTimeInfo.get("deliveryTime")
     if not delivery_time:
-        print("请检查参数是否正确！")
+        delivery_time = "请检查参数是否正确！"
+        message = f"orderId：{orderId}\nuserId：{userId}\nCookie：{Cookie}"
+        save_delivery_time(delivery_time)
+        send_bark_message(device_token, message)
         sys.exit()
     add_time = orderTimeInfo.get("addTime")
     pay_time = orderTimeInfo.get("payTime")
@@ -123,7 +126,6 @@ def send_bark_message(token, message):
 
 def main():
     if delivery_time != old_delivery_time:
-        print("交付时间已更新！")
         save_delivery_time(delivery_time)  # 更新配置文件
         if send_bark_message(device_token, message):
             print("消息已发送成功！")
