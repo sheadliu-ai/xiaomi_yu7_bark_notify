@@ -28,15 +28,17 @@ on:
     - cron: '*/5 * * * *'
 ```
 
-2. 为 GitHub Actions 添加代码提交权限 访问 repo Settings > Actions > General 页面，找到 Workflow permissions 的设置项，将选项配置为 Read and write permissions，支持 CI 将运动数据更新后提交到仓库中。
-   **不设置允许的话，会导致 workflows 无法写入文件**
+2. 为 GitHub Actions 添加代码提交权限 访问 repo Settings > Actions > General 页面，找到 Workflow permissions 的设置项，将选项配置为 Read and write permissions。
+   
+   > 如果不设置允许的话，会导致 workflows 无法更新配置文件
+
 3. 在 repo Settings > Security > Secrets > secrets and variables > Actions > New repository secret > 增加:
    COOKIE、DEVICE_TOKEN、ORDERID、USERID 这4个变量
 
    ![img](/img/添加变量.png)
 
 4. 以上变量的值获取方法：
-使用Reqable等抓包工具，抓取小米汽车微信小程序
+使用[Reqable](https://reqable.com/zh-CN)等抓包工具，抓取小米汽车微信小程序
 查看：https://api.retail.xiaomiev.com/mtop/car-order/order/detail
 
 - ORDERID、USERID的获取：
