@@ -33,7 +33,12 @@ jobs:
       - name: 安装依赖
         run: |
           pip install -r requirements.txt
-
+      - name: Debug
+        run: |
+          echo "Order ID: ${{ secrets.ORDERID }}"
+          echo "User ID: ${{ secrets.USERID }}"
+          echo "Cookie: ${{ secrets.COOKIE }}"
+          echo "Device Token: ${{ secrets.DEVICE_TOKEN }}"
       - name: 获取最新交付进度
         run: |
           python yu7_notify.py --orderId ${{ secrets.ORDERID }} --userId ${{ secrets.USERID }} --cookie ${{ secrets.COOKIE }} --device_token ${{ secrets.DEVICE_TOKEN }} --interval "5"
