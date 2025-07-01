@@ -91,6 +91,11 @@ def save_delivery_time(delivery_time, interval="5"):
 
 
 def load_delivery_time():
+    if not os.path.exists(config_path):
+        import shutil
+
+        print("正在初始化配置文件...")
+        shutil.copy("configBAK.toml", "config.toml")
     config = toml.load(config_path)  # 加载配置文件
     return config["api"].get(
         "deliveryTimeLatest", None
