@@ -42,5 +42,5 @@ jobs:
           git config --local user.email "${{ env.GITHUB_EMAIL }}"
           git config --local user.name "${{ env.GITHUB_NAME }}"
           git add .
-          git commit -m "已发送Bark通知，执行时间：${current_time}" || echo "nothing to commit"
-          git push || echo "nothing to push"
+          git commit -m "已发送Bark通知，执行时间：${current_time}" || echo "进度无更新"
+          git push || echo "进度无更新"
