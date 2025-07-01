@@ -1,4 +1,4 @@
-# [yunmai_weight_extract2json](https://github.com/arthurfsy2/yunmai_weight_extract2json/tree/main)
+# [xiaomi yu7 notify](https://github.com/arthurfsy2/xiaomi_yu7_bark_notify)
 
 一个可以自动获取小米YU7交付进度，通过Bark通知给用户的脚本。
 
