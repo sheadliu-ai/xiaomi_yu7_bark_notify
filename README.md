@@ -4,6 +4,8 @@
 
 PS：本脚本采用Cookie的方式进行获取数据，可能存在Cookie过期的情况，需要手动更新
 
+> 可通过Github Action或青龙面板设置定时查询
+> 青龙面板的定时可能更准确一些
 
 ## Github Action
 
