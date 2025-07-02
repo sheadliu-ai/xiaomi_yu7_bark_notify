@@ -5,7 +5,7 @@
 PS：本脚本采用Cookie的方式进行获取数据，可能存在Cookie过期的情况，需要手动更新
 
 
-# Github Action
+## Github Action
 
 如果你想通过 Github Action 来实现定时获取数据，可进行以下步骤
 
@@ -44,16 +44,43 @@ on:
 - ORDERID、USERID的获取：
 ![img](/img/1.png)
 
--COOKIE的获取
+- COOKIE的获取
 
 > 注意：COOKIE变量在粘贴到github action时，首尾要添加`"`符号
 
 ![img](/img/2.png)
 
--DEVICE_TOKEN的获取
+- DEVICE_TOKEN的获取
 IOS下载`Bark`-->服务器-->复制device_token
 ![img](/img/3.png)
 
 > 在device_token正确的情况下，运行action后，如果ORDERID、USERID、COOKIE任意一个参数存在问题，会发送错误提醒
 
 ![img](/img/para_error.jpg)
+
+## 青龙面板
+如果你是和我一样，是一个略懂青龙面板的“脚本小子”，也可以通过以下来设置定时任务来执行脚本
+1. 安装Python依赖：requests、toml
+![img](/img/ql-1.png)
+
+2. 复制文件
+- 需复制文件：yu7_notify.py、configBAK.toml（需手动改名为config.toml）
+- 修改config.toml当中的orderId、userId、Cookie、device_token（取值来源可参考上文）
+![img](/img/ql-2.1.png)
+![img](/img/ql-2.2.png)
+
+> 如果是docker部署的青龙面板，可以将上述2个文件复制粘贴到宿主机对应的目录
+
+3. 调试脚本（可选）
+![img](/img/ql-3.1.png)
+![img](/img/ql-3.2.png)
+
+> 如果依赖安装正常、账号参数正确，则会输出对应的日志提示
+
+4. 设置定时任务
+
+名称：`yu7_notify`（可修改）
+命令/脚本：`python  /ql/data/scripts/yu7_notify/yu7_notify.py`
+定时规则：`*/5 * * * *` (默认每5分钟执行一次)
+
+![img](/img/ql-4.1.png)

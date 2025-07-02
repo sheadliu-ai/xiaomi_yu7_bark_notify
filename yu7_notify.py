@@ -5,8 +5,6 @@ from datetime import datetime
 import toml
 import os
 import sys
-import schedule
-import time
 import argparse
 
 BIN = os.path.dirname(os.path.realpath(__file__))
@@ -173,9 +171,3 @@ if __name__ == "__main__":
     delivery_time, message = get_delivery_time(orderId, userId, Cookie)
 
     main()
-    # 每N分钟执行一次
-    # schedule.every(interval).minutes.do(main)
-
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(1)
