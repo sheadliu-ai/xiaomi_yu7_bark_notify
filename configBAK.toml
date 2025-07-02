@@ -4,4 +4,4 @@ userId = ""
 Cookie = ""
 device_token = ""
 deliveryTimeLatest = ""
-interval = 5
+error_times = 0

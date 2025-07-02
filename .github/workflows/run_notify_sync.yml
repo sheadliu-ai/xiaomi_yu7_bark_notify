@@ -35,7 +35,7 @@ jobs:
           pip install -r requirements.txt
       - name: 获取最新交付进度
         run: |
-          python yu7_notify.py --orderId ${{ secrets.ORDERID }} --userId ${{ secrets.USERID }} --cookie ${{ secrets.COOKIE }} --device_token ${{ secrets.DEVICE_TOKEN }} --interval "5"
+          python yu7_notify.py --orderId ${{ secrets.ORDERID }} --userId ${{ secrets.USERID }} --cookie ${{ secrets.COOKIE }} --device_token ${{ secrets.DEVICE_TOKEN }}
       - name: 提交
         run: |
           current_time=$(date +'%Y-%m-%d %H:%M:%S %Z') # 获取当前时间并转换为中国时区时间

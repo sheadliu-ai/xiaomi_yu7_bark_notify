@@ -21,7 +21,6 @@ def load_config():
             args.userId,
             args.cookie,
             args.device_token,
-            config["api"]["interval"],
             config["api"]["error_times"],
         )
 
@@ -32,7 +31,6 @@ def load_config():
             config["api"]["userId"],
             config["api"]["Cookie"],
             config["api"]["device_token"],
-            config["api"]["interval"],
             config["api"]["error_times"],
         )
     except:
@@ -59,6 +57,7 @@ def get_delivery_time(orderId, userId, Cookie):
 
     response = requests.post(url, data=json.dumps(payload), headers=headers)
     data = response.json().get("data", {})
+    logo_link = data.get("backdropPictures", {}).get("backdropPicture", None)
     statusInfo = data.get("statusInfo", {})
     orderTimeInfo = data.get("orderTimeInfo", {})
     orderStatusName = statusInfo.get("orderStatusName")
@@ -76,16 +75,17 @@ def get_delivery_time(orderId, userId, Cookie):
     add_time = orderTimeInfo.get("addTime")
     pay_time = orderTimeInfo.get("payTime")
     lock_time = orderTimeInfo.get("lockTime")
-
-    text = f"【{orderStatusName}：{delivery_time}】\n下定时间：{add_time}\n支付时间：{pay_time}\n锁单时间：{lock_time}"
-
+    goods_names = "|".join(
+        item.get("goodsName", "") for item in data.get("orderItem", [])
+    )
+    text = f"📦 交付进度：{orderStatusName}，{delivery_time}\n\n📅 下定时间：{add_time}\n💳 支付时间：{pay_time}\n🔒 锁单时间：{lock_time}\n\n🛍️ 配置：{goods_names}"
     # 保存交付时间到文件
     save_delivery_time(delivery_time)
 
-    return delivery_time, text
+    return delivery_time, text, logo_link
 
 
-def save_delivery_time(delivery_time, interval="5", error_times=0):
+def save_delivery_time(delivery_time, error_times=0):
     # 先加载当前的配置
     config = toml.load(config_path)
     if args.cookie:
@@ -93,7 +93,7 @@ def save_delivery_time(delivery_time, interval="5", error_times=0):
         config["api"]["userId"] = ""
         config["api"]["Cookie"] = ""
         config["api"]["device_token"] = ""
-        config["api"]["interval"] = args.interval if args.interval else interval
+
     # 更新 deliveryTimeLatest
     config["api"]["deliveryTimeLatest"] = delivery_time
     config["api"]["error_times"] = error_times
@@ -115,7 +115,10 @@ def load_delivery_time():
     )  # 获取 deliveryTimeLatest 的值，默认为 None
 
 
-def send_bark_message(token, message):
+def send_bark_message(token, message, logo_link=None):
+    icon_link = "https://upload.wikimedia.org/wikipedia/commons/4/4f/Xiaomi_EV_New.jpg"
+    if logo_link:
+        icon_link = logo_link
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     url = f"https://api.day.app/{token}"
     headers = {
@@ -124,8 +127,8 @@ def send_bark_message(token, message):
 
     data = {
         "body": message,
-        "title": f"yu7进度查询({current_time})",
-        "icon": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Xiaomi_EV_New.jpg",
+        "title": f"小米汽车交付进度查询({current_time})",
+        "icon": icon_link,
         "group": "test",
         "isArchive": 1,
     }
@@ -141,7 +144,7 @@ def send_bark_message(token, message):
 def main():
     if delivery_time != old_delivery_time:
         save_delivery_time(delivery_time)  # 更新配置文件
-        if send_bark_message(device_token, message):
+        if send_bark_message(device_token, message, logo_link):
             print("消息已发送成功！")
         else:
             print("消息发送失败。")
@@ -161,13 +164,13 @@ if __name__ == "__main__":
         type=str,
         help="Device Token",
     )
-    parser.add_argument("--interval", type=str, help="interval")
+
     args = parser.parse_args()
     # print(args)
-    orderId, userId, Cookie, device_token, interval, error_times = load_config()
+    orderId, userId, Cookie, device_token, error_times = load_config()
 
     old_delivery_time = load_delivery_time()
     # print("old_delivery_time:", old_delivery_time)
-    delivery_time, message = get_delivery_time(orderId, userId, Cookie)
+    delivery_time, message, logo_link = get_delivery_time(orderId, userId, Cookie)
 
     main()
