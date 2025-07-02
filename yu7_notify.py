@@ -14,23 +14,31 @@ config_path = os.path.join(BIN, "config.toml")
 
 
 def load_config():
+    config = toml.load(config_path)
 
     if args.cookie:
-        print("使用命令行参数传入数据...")
-        return args.orderId, args.userId, args.cookie, args.device_token, args.interval
+        print("使用命令行参数传入账号参数...")
+        return (
+            args.orderId,
+            args.userId,
+            args.cookie,
+            args.device_token,
+            config["api"]["interval"],
+            config["api"]["error_times"],
+        )
 
     try:
-        print("使用config.toml传入数据...")
-        config = toml.load(config_path)
+        print("使用config.toml传入账号参数...")
         return (
             config["api"]["orderId"],
             config["api"]["userId"],
             config["api"]["Cookie"],
             config["api"]["device_token"],
             config["api"]["interval"],
+            config["api"]["error_times"],
         )
     except:
-        print("请检查config.toml文件的参数是否正确！")
+        print("请检查config.toml文件的参数是否完整/正确！")
         sys.exit()
 
 
@@ -60,9 +68,12 @@ def get_delivery_time(orderId, userId, Cookie):
     delivery_time = orderTimeInfo.get("deliveryTime")
     if not delivery_time:
         delivery_time = "请检查参数是否正确！"
-        message = f"orderId：{orderId}\nuserId：{userId}\nCookie：{Cookie}"
-        save_delivery_time(delivery_time)
-        send_bark_message(device_token, message)
+        error_times_update = error_times + 1
+        message = f"失败次数：{error_times_update}\norderId：{orderId}\nuserId：{userId}\nCookie：{Cookie}\n【失败次数超过3次后将停止发送】"
+
+        save_delivery_time(delivery_time, error_times=error_times_update)
+        if error_times_update <= 3:
+            send_bark_message(device_token, message)
         sys.exit()
     add_time = orderTimeInfo.get("addTime")
     pay_time = orderTimeInfo.get("payTime")
@@ -76,7 +87,7 @@ def get_delivery_time(orderId, userId, Cookie):
     return delivery_time, text
 
 
-def save_delivery_time(delivery_time, interval="5"):
+def save_delivery_time(delivery_time, interval="5", error_times=0):
     # 先加载当前的配置
     config = toml.load(config_path)
     if args.cookie:
@@ -87,6 +98,7 @@ def save_delivery_time(delivery_time, interval="5"):
         config["api"]["interval"] = args.interval if args.interval else interval
     # 更新 deliveryTimeLatest
     config["api"]["deliveryTimeLatest"] = delivery_time
+    config["api"]["error_times"] = error_times
 
     # 写入更新后的配置到文件
     with open(config_path, "w", encoding="utf-8") as f:
@@ -121,7 +133,11 @@ def send_bark_message(token, message):
     }
 
     response = requests.post(url, headers=headers, json=data)
-    return response.status_code == 200
+    if response.status_code == 200:
+        return True
+    else:
+        print("请检查Bark的token是否正确！")
+        sys.exit()
 
 
 def main():
@@ -150,7 +166,7 @@ if __name__ == "__main__":
     parser.add_argument("--interval", type=str, help="interval")
     args = parser.parse_args()
     # print(args)
-    orderId, userId, Cookie, device_token, interval = load_config()
+    orderId, userId, Cookie, device_token, interval, error_times = load_config()
 
     old_delivery_time = load_delivery_time()
     # print("old_delivery_time:", old_delivery_time)
