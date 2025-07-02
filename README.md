@@ -79,8 +79,9 @@ IOS下载`Bark`-->服务器-->复制device_token
 
 4. 设置定时任务
 
-名称：`yu7_notify`（可修改）
-命令/脚本：`python  /ql/data/scripts/yu7_notify/yu7_notify.py`
-定时规则：`*/5 * * * *` (默认每5分钟执行一次)
+- 名称：`yu7_notify`（可修改）
+- 命令/脚本：`python  /ql/data/scripts/yu7_notify/yu7_notify.py`
+- 定时规则：`*/5 * * * *` (默认每5分钟执行一次)
 
 ![img](/img/ql-4.1.png)
+![img](/img/ql-4.2.png)
