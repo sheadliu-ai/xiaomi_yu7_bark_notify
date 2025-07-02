@@ -3,5 +3,5 @@ orderId = ""
 userId = ""
 Cookie = ""
 device_token = ""
-deliveryTimeLatest = "请检查参数是否正确！"
-error_times = 1
+deliveryTimeLatest = "锁定订单后预计23-26周交付"
+error_times = 0
