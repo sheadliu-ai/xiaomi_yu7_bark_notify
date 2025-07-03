@@ -1,0 +1,561 @@
+[
+  {
+    "id": "7f1ddb83788c4219",
+    "type": "tab",
+    "label": "yu7",
+    "disabled": false,
+    "info": "",
+    "env": []
+  },
+  {
+    "id": "d978663f2bee121e",
+    "type": "http request",
+    "z": "7f1ddb83788c4219",
+    "name": "get_delivery_time",
+    "method": "POST",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 1250,
+    "y": 620,
+    "wires": [["1c5ea3675340f328"]]
+  },
+  {
+    "id": "a6be38f0a49f434b",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "参数设置",
+    "func": "msg.url =\"https://api.retail.xiaomiev.com/mtop/car-order/order/detail\"\n\nvar data = [{ \"orderId\": global.get(\"orderId\"), \"userId\": global.get(\"userId\") }]\nconst data_json = JSON.stringify(data);\nmsg.payload = data_json\n\nmsg.headers = {\n    'Accept-Language': 'zh-Hans-CN;q=1, en-CN;q=0.9',\n    \"User-Agent\": \"Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.60(0x18003c31) NetType/4G Language/zh_CN\",\n    // \"Accept-Encoding\": \"gzip,compress,br,deflate\",\n    \"Content-Type\": \"application/json; charset=utf-8\",\n    \"configSelectorVersion\": \"2\",\n    \"content-type\": \"application/json; charset=utf-8\",\n    \"deviceappversion\": \"1.16.0\",\n    \"x-user-agent\": \"channel/car platform/car.wxlite\",\n    \"Referer\": \"https://servicewechat.com/wx183d85f5e5e273c6/93/page-frame.html\",\n    \"Cookie\": global.get(\"Cookie\"),\n}\n\n\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1080,
+    "y": 620,
+    "wires": [["d978663f2bee121e"]]
+  },
+  {
+    "id": "a14b39ad8f5044c9",
+    "type": "comment",
+    "z": "7f1ddb83788c4219",
+    "name": "获取小米汽车交付进度",
+    "info": "",
+    "x": 700,
+    "y": 400,
+    "wires": []
+  },
+  {
+    "id": "bfc509d4d3c43d23",
+    "type": "inject",
+    "z": "7f1ddb83788c4219",
+    "name": "",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "300",
+    "crontab": "",
+    "once": false,
+    "onceDelay": "2",
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 680,
+    "y": 520,
+    "wires": [["19b372a0020dc5b7", "25b166b07a655332"]]
+  },
+  {
+    "id": "ad7a46b756a429f0",
+    "type": "debug",
+    "z": "7f1ddb83788c4219",
+    "name": "debug 400",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1590,
+    "y": 1240,
+    "wires": []
+  },
+  {
+    "id": "c2b47d1bc667951b",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "获取交付进度-成功",
+    "func": "var logo_link = msg.payload.data.backdropPictures.backdropPicture\nvar orderStatusName = msg.payload.data.statusInfo.orderStatusName\nvar delivery_time = msg.payload.data.orderTimeInfo.deliveryTime\nvar add_time = msg.payload.data.orderTimeInfo.addTime\nvar pay_time = msg.payload.data.orderTimeInfo.payTime\nvar lock_time = msg.payload.data.orderTimeInfo.lockTime\nvar goods_names = msg.payload.data.orderItem.map(item => item.goodsName || \"\").join(\"|\");\n\nglobal.set(\"error_times\", 0)\nglobal.set(\"deliveryTimeLatest\", delivery_time)\n\nvar text = `📦 交付进度：${orderStatusName}，${delivery_time}\\n\\n📅 下定时间：${add_time}\\n💳 支付时间：${pay_time}\\n🔒 锁单时间：${lock_time}\\n\\n🛍️ 配置：${goods_names}`\nvar msg = { \"delivery_time\": delivery_time, \"logo_link\": logo_link, \"text\": text }\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 750,
+    "y": 800,
+    "wires": [["f30537d02dbc5010", "dafa3ff249b6b24c"]]
+  },
+  {
+    "id": "f30537d02dbc5010",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "构建bark请求",
+    "func": "var logo_link = msg.logo_link\nvar message = msg.text\nvar token = global.get(\"device_token\")\nmsg.url =`https://api.day.app/${token}`\nvar data = {\n    \"body\": message + \"\\n\\n    -from Node-Red\",\n    \"title\": `小米汽车交付进度查询(${global.get(\"current_time\")})`,\n    \"icon\": logo_link,\n    \"group\": \"test\",\n    \"isArchive\": 1,\n}\nconst data_json = JSON.stringify(data);\nmsg.headers = {\n    \"Content-Type\": \"application/json; charset=utf-8\",\n}\n\nmsg.payload = data_json\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 990,
+    "y": 1020,
+    "wires": [["55e5e6e4509875ed", "807ec75ec32fb1a8"]]
+  },
+  {
+    "id": "33ea869f05505a35",
+    "type": "http request",
+    "z": "7f1ddb83788c4219",
+    "name": "send_bark_message",
+    "method": "POST",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 1540,
+    "y": 1020,
+    "wires": [["51ea8318f410673f", "dafa3ff249b6b24c"]]
+  },
+  {
+    "id": "19b372a0020dc5b7",
+    "type": "moment",
+    "z": "7f1ddb83788c4219",
+    "name": "current_time",
+    "topic": "",
+    "input": "",
+    "inputType": "date",
+    "inTz": "Asia/Shanghai",
+    "adjAmount": 0,
+    "adjType": "days",
+    "adjDir": "add",
+    "format": "yyyy-MM-DD HH:mm:ss",
+    "locale": "en-US",
+    "output": "current_time",
+    "outputType": "global",
+    "outTz": "Asia/Shanghai",
+    "x": 950,
+    "y": 420,
+    "wires": [[]]
+  },
+  {
+    "id": "1c5ea3675340f328",
+    "type": "switch",
+    "z": "7f1ddb83788c4219",
+    "name": "",
+    "property": "payload",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "hask",
+        "v": "data",
+        "vt": "str"
+      },
+      {
+        "t": "else"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 2,
+    "x": 1430,
+    "y": 620,
+    "wires": [["c2b47d1bc667951b"], ["945f5e0adf12bb24"]]
+  },
+  {
+    "id": "945f5e0adf12bb24",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "获取交付进度-失败",
+    "func": "var error_times_update = global.get(\"error_times\") + 1\nvar logo_link = \"https://upload.wikimedia.org/wikipedia/commons/4/4f/Xiaomi_EV_New.jpg\"\nglobal.set(\"error_times\", error_times_update)\nvar delivery_time = \"请检查参数是否正确！\"\nvar orderId = global.get(\"orderId\")\nvar userId = global.get(\"userId\")\nvar userId = global.get(\"userId\")\nvar cookie = global.get(\"cookie\")\n\nglobal.set(\"deliveryTimeLatest\", delivery_time)\nvar text = `失败次数：${global.get(\"error_times\")}\\norderId：${orderId}\\nuserId：${userId}\\nCookie：${cookie}\\n【失败次数超过3次后将停止发送】`\nvar msg = { \"delivery_time\": delivery_time, \"logo_link\": logo_link, \"text\": text }\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 730,
+    "y": 1020,
+    "wires": [["f30537d02dbc5010"]]
+  },
+  {
+    "id": "25b166b07a655332",
+    "type": "file in",
+    "z": "7f1ddb83788c4219",
+    "name": "读取config.json",
+    "filename": "/data/config.json",
+    "filenameType": "str",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": false,
+    "encoding": "none",
+    "allProps": false,
+    "x": 860,
+    "y": 520,
+    "wires": [["3baa903e4cd32356"]]
+  },
+  {
+    "id": "3baa903e4cd32356",
+    "type": "json",
+    "z": "7f1ddb83788c4219",
+    "name": "",
+    "property": "payload",
+    "action": "",
+    "pretty": true,
+    "x": 1050,
+    "y": 520,
+    "wires": [["fabf45dd3d633458"]]
+  },
+  {
+    "id": "fabf45dd3d633458",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "设定全局变量",
+    "func": "global.set(\"orderId\",msg.payload.orderId) \nglobal.set(\"userId\",msg.payload.userId) \nglobal.set(\"Cookie\",msg.payload.Cookie) \nglobal.set(\"device_token\", msg.payload.device_token) \nglobal.set(\"deliveryTimeLatest_old\", msg.payload.deliveryTimeLatest)\nglobal.set(\"error_times\", msg.payload.error_times)\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1220,
+    "y": 520,
+    "wires": [["a6be38f0a49f434b"]]
+  },
+  {
+    "id": "33a0c978b27892cc",
+    "type": "file",
+    "z": "7f1ddb83788c4219",
+    "name": "保存config.json",
+    "filename": "/data/config.json",
+    "filenameType": "str",
+    "appendNewline": false,
+    "createDir": true,
+    "overwriteFile": "true",
+    "encoding": "none",
+    "x": 1840,
+    "y": 780,
+    "wires": [["01c0b4e7557a0680"]]
+  },
+  {
+    "id": "dafa3ff249b6b24c",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "更新配置文件",
+    "func": "\nmsg.payload = {\n    \"orderId\": global.get(\"orderId\"),\n    \"userId\": global.get(\"userId\"),\n    \"Cookie\": global.get(\"Cookie\"),\n    \"device_token\": global.get(\"device_token\"),\n    \"deliveryTimeLatest\":global.get(\"deliveryTimeLatest\"),\n    \"error_times\":global.get(\"error_times\")\n\n}\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1460,
+    "y": 780,
+    "wires": [["844b53875c4a56c2"]]
+  },
+  {
+    "id": "844b53875c4a56c2",
+    "type": "json",
+    "z": "7f1ddb83788c4219",
+    "name": "",
+    "property": "payload",
+    "action": "",
+    "pretty": true,
+    "x": 1650,
+    "y": 780,
+    "wires": [["33a0c978b27892cc"]]
+  },
+  {
+    "id": "55e5e6e4509875ed",
+    "type": "switch",
+    "z": "7f1ddb83788c4219",
+    "name": "",
+    "property": "deliveryTimeLatest_old",
+    "propertyType": "global",
+    "rules": [
+      {
+        "t": "neq",
+        "v": "delivery_time",
+        "vt": "msg"
+      },
+      {
+        "t": "else"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 2,
+    "x": 1170,
+    "y": 1020,
+    "wires": [["33ea869f05505a35"], ["694f9f2ef05dbcb8"]]
+  },
+  {
+    "id": "807ec75ec32fb1a8",
+    "type": "switch",
+    "z": "7f1ddb83788c4219",
+    "name": "参数错误",
+    "property": "delivery_time",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "eq",
+        "v": "请检查参数是否正确！",
+        "vt": "str"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 1,
+    "x": 1180,
+    "y": 960,
+    "wires": [["aa863859613eefdd"]]
+  },
+  {
+    "id": "aa863859613eefdd",
+    "type": "switch",
+    "z": "7f1ddb83788c4219",
+    "name": "提醒次数<=3",
+    "property": "error_times",
+    "propertyType": "global",
+    "rules": [
+      {
+        "t": "lte",
+        "v": "3",
+        "vt": "num"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 1,
+    "x": 1330,
+    "y": 960,
+    "wires": [["33ea869f05505a35"]]
+  },
+  {
+    "id": "51ea8318f410673f",
+    "type": "switch",
+    "z": "7f1ddb83788c4219",
+    "name": "",
+    "property": "payload.code",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "neq",
+        "v": "200",
+        "vt": "num"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 1,
+    "x": 1150,
+    "y": 1240,
+    "wires": [["f599f3fc27e18a49", "0f96755b1e5b65da"]]
+  },
+  {
+    "id": "f599f3fc27e18a49",
+    "type": "change",
+    "z": "7f1ddb83788c4219",
+    "name": "Bark的token错误提醒",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "请检查Bark的token是否正确！",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 1340,
+    "y": 1240,
+    "wires": [["ad7a46b756a429f0"]]
+  },
+  {
+    "id": "0f96755b1e5b65da",
+    "type": "change",
+    "z": "7f1ddb83788c4219",
+    "name": "",
+    "rules": [
+      {
+        "t": "set",
+        "p": "error_times",
+        "pt": "global",
+        "to": "0",
+        "tot": "num"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 1350,
+    "y": 1300,
+    "wires": [["dafa3ff249b6b24c"]]
+  },
+  {
+    "id": "694f9f2ef05dbcb8",
+    "type": "change",
+    "z": "7f1ddb83788c4219",
+    "name": "无变更提醒",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "交付状态无更新",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 1330,
+    "y": 1060,
+    "wires": [["ad7a46b756a429f0"]]
+  },
+  {
+    "id": "01c0b4e7557a0680",
+    "type": "ha-sensor",
+    "z": "7f1ddb83788c4219",
+    "name": "yu7_notify",
+    "entityConfig": "24c5454de65ae874",
+    "version": 0,
+    "state": "deliveryTimeLatest",
+    "stateType": "global",
+    "attributes": [
+      {
+        "property": "updateTime",
+        "value": "current_time",
+        "valueType": "global"
+      },
+      {
+        "property": "deliveryTimeLatest",
+        "value": "deliveryTimeLatest",
+        "valueType": "global"
+      }
+    ],
+    "inputOverride": "allow",
+    "outputProperties": [],
+    "x": 2070,
+    "y": 780,
+    "wires": [["f05f07c219094c77"]]
+  },
+  {
+    "id": "f05f07c219094c77",
+    "type": "debug",
+    "z": "7f1ddb83788c4219",
+    "name": "debug 401",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 2230,
+    "y": 740,
+    "wires": []
+  },
+  {
+    "id": "24c5454de65ae874",
+    "type": "ha-entity-config",
+    "server": "8473da4d3c8e0016",
+    "deviceConfig": "",
+    "name": "yu7_notify",
+    "version": "6",
+    "entityType": "sensor",
+    "haConfig": [
+      {
+        "property": "name",
+        "value": "yu7交付进度通知"
+      },
+      {
+        "property": "icon",
+        "value": ""
+      },
+      {
+        "property": "entity_picture",
+        "value": ""
+      },
+      {
+        "property": "entity_category",
+        "value": ""
+      },
+      {
+        "property": "device_class",
+        "value": ""
+      },
+      {
+        "property": "unit_of_measurement",
+        "value": ""
+      },
+      {
+        "property": "state_class",
+        "value": ""
+      }
+    ],
+    "resend": true,
+    "debugEnabled": false
+  },
+  {
+    "id": "8473da4d3c8e0016",
+    "type": "server",
+    "name": "4a1801",
+    "version": 5,
+    "addon": false,
+    "rejectUnauthorizedCerts": false,
+    "ha_boolean": "y|yes|true|on|home|open",
+    "connectionDelay": true,
+    "cacheJson": true,
+    "heartbeat": false,
+    "heartbeatInterval": "30",
+    "areaSelector": "friendlyName",
+    "deviceSelector": "friendlyName",
+    "entitySelector": "friendlyName",
+    "statusSeparator": "at: ",
+    "statusYear": "hidden",
+    "statusMonth": "short",
+    "statusDay": "numeric",
+    "statusHourCycle": "h23",
+    "statusTimeFormat": "h:m",
+    "enableGlobalContextStore": true
+  }
+]

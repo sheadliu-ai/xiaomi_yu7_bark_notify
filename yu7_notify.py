@@ -54,7 +54,7 @@ def get_delivery_time(orderId, userId, Cookie):
         "Referer": "https://servicewechat.com/wx183d85f5e5e273c6/93/page-frame.html",
         "Cookie": Cookie,
     }
-
+    print(json.dumps(payload))
     response = requests.post(url, data=json.dumps(payload), headers=headers)
     data = response.json().get("data", {})
     logo_link = data.get("backdropPictures", {}).get("backdropPicture", None)
