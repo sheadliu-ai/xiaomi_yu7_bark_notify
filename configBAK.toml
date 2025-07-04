@@ -5,3 +5,4 @@ Cookie = ""
 device_token = ""
 deliveryTimeLatest = ""
 error_times = 0
+remarks = "                              --来自Github Action"

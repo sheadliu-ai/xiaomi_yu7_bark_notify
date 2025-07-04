@@ -22,6 +22,7 @@ def load_config():
             args.cookie,
             args.device_token,
             config["api"]["error_times"],
+            config["api"]["remarks"],
         )
 
     try:
@@ -32,6 +33,7 @@ def load_config():
             config["api"]["Cookie"],
             config["api"]["device_token"],
             config["api"]["error_times"],
+            config["api"]["remarks"],
         )
     except:
         print("请检查config.toml文件的参数是否完整/正确！")
@@ -54,7 +56,7 @@ def get_delivery_time(orderId, userId, Cookie):
         "Referer": "https://servicewechat.com/wx183d85f5e5e273c6/93/page-frame.html",
         "Cookie": Cookie,
     }
-    print(json.dumps(payload))
+
     response = requests.post(url, data=json.dumps(payload), headers=headers)
     data = response.json().get("data", {})
     logo_link = data.get("backdropPictures", {}).get("backdropPicture", None)
@@ -66,7 +68,7 @@ def get_delivery_time(orderId, userId, Cookie):
     if not delivery_time:
         delivery_time = "请检查参数是否正确！"
         error_times_update = error_times + 1
-        message = f"失败次数：{error_times_update}\norderId：{orderId}\nuserId：{userId}\nCookie：{Cookie}\n【失败次数超过3次后将停止发送】"
+        message = f"失败次数：{error_times_update}\norderId：{orderId}\nuserId：{userId}\nCookie：{Cookie}\n【失败次数超过3次后将停止发送】\n\n{remarks}"
 
         save_delivery_time(delivery_time, error_times=error_times_update)
         if error_times_update <= 3:
@@ -78,7 +80,7 @@ def get_delivery_time(orderId, userId, Cookie):
     goods_names = "|".join(
         item.get("goodsName", "") for item in data.get("orderItem", [])
     )
-    text = f"📦 交付进度：{orderStatusName}，{delivery_time}\n\n📅 下定时间：{add_time}\n💳 支付时间：{pay_time}\n🔒 锁单时间：{lock_time}\n\n🛍️ 配置：{goods_names}"
+    text = f"📦 交付进度：{orderStatusName}，{delivery_time}\n\n📅 下定时间：{add_time}\n💳 支付时间：{pay_time}\n🔒 锁单时间：{lock_time}\n\n🛍️ 配置：{goods_names}\n\n{remarks}"
     # 保存交付时间到文件
     save_delivery_time(delivery_time)
 
@@ -164,10 +166,9 @@ if __name__ == "__main__":
         type=str,
         help="Device Token",
     )
-
     args = parser.parse_args()
     # print(args)
-    orderId, userId, Cookie, device_token, error_times = load_config()
+    orderId, userId, Cookie, device_token, error_times, remarks = load_config()
 
     old_delivery_time = load_delivery_time()
     # print("old_delivery_time:", old_delivery_time)
