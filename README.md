@@ -6,8 +6,6 @@
 
 ![img](/img/para_succeed.jpg)
 
-
-
 > 本脚本采用 Cookie 的方式进行获取数据，可能存在 Cookie 过期的情况，需要手动更新
 
 > 青龙面板的定时可能更准确一些
@@ -44,8 +42,8 @@ on:
 
    ![img](/img/添加变量.png)
 
-4. ORDERID、USERID、COOKIE获取方法：
-   使用[Reqable](https://reqable.com/zh-CN)等抓包工具，抓取小米汽车微信小程序
+4. ORDERID、USERID、COOKIE 获取方法：
+   使用[Reqable](https://reqable.com/zh-CN)等抓包工具，抓取`小米汽车微信小程序`
    查看：`https://api.retail.xiaomiev.com/mtop/car-order/order/detail`
 
 - ORDERID、USERID 的获取：
@@ -59,14 +57,14 @@ on:
 
 5. CARSHOPCOOKIE 获取方法：
 
-   使用[Reqable](https://reqable.com/zh-CN)等抓包工具，抓取小米汽车微信小程序
+   使用[Reqable](https://reqable.com/zh-CN)等抓包工具，抓取`小米汽车App`
    查看：`https://carshop-api.retail.xiaomiev.com/mtop/carlife/product/info`
 
-    ![img](/img/4.png)
+   ![img](/img/4.png)
 
 6. DEVICE_TOKEN 的获取
-  IOS 下载`Bark`-->服务器-->复制 device_token
-  ![img](/img/3.png)
+   IOS 下载`Bark`-->服务器-->复制 device_token
+   ![img](/img/3.png)
 
 > 在 device_token 正确的情况下，运行 action 后，如果 ORDERID、USERID、COOKIE 任意一个参数存在问题，会发送错误提醒
 
@@ -112,31 +110,30 @@ on:
 
 1. 前置步骤：
 
-  - 你的 ha 和 NR 已经完成连接
-  - 已在 NR 当中安装`Node-RED-contrib-http-request`这个节点
-  - 已将对应的HA server更换为你自己的配置
+- 你的 ha 和 NR 已经完成连接
+- 已在 NR 当中安装`Node-RED-contrib-http-request`这个节点
+- 已将对应的 HA server 更换为你自己的配置
 
 2. NR 导入文件`yu7_notify.json`
 
 3. 复制文件
 
-- 需复制`Node-RED`下的2个文件：config.json、yu7_notify.json
+- 需复制`Node-RED`下的 2 个文件：config.json、yu7_notify.json
 
 - 修改 config.json 当中的 orderId、userId、Cookie、device_token（取值来源可参考上文）
 
-
 ![img](/img/nr-3.png)
 
-> 如果是 docker 部署的Node-RED，可以将上述 2 个文件复制粘贴到宿主机对应的目录
+> 如果是 docker 部署的 Node-RED，可以将上述 2 个文件复制粘贴到宿主机对应的目录
 
 4. 修改执行周期
 
-默认是每5分钟执行一次，可手动修改】
+默认是每 5 分钟执行一次，可手动修改】
 
 ![img](/img/nr-4.png)
 
-5. HA实体
+5. HA 实体
 
-当运行成功一次后，会在HA当中新增实体，之后可以尽情发挥你的想象力了！
+当运行成功一次后，会在 HA 当中新增实体，之后可以尽情发挥你的想象力了！
 
 ![img](/img/nr-5.png)
