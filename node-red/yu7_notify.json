@@ -11,7 +11,7 @@
     "id": "d978663f2bee121e",
     "type": "http request",
     "z": "7f1ddb83788c4219",
-    "name": "get_delivery_time",
+    "name": "get_order_detail",
     "method": "POST",
     "ret": "obj",
     "paytoqs": "ignore",
@@ -23,9 +23,9 @@
     "authType": "",
     "senderr": false,
     "headers": [],
-    "x": 1250,
+    "x": 1240,
     "y": 620,
-    "wires": [["1c5ea3675340f328"]]
+    "wires": [["1c5ea3675340f328", "ada3820b628c9217"]]
   },
   {
     "id": "a6be38f0a49f434b",
@@ -67,14 +67,14 @@
         "vt": "str"
       }
     ],
-    "repeat": "300",
+    "repeat": "",
     "crontab": "",
     "once": false,
     "onceDelay": "2",
     "topic": "",
     "payload": "",
     "payloadType": "date",
-    "x": 680,
+    "x": 670,
     "y": 520,
     "wires": [["19b372a0020dc5b7", "25b166b07a655332"]]
   },
@@ -91,8 +91,8 @@
     "targetType": "msg",
     "statusVal": "",
     "statusType": "auto",
-    "x": 1590,
-    "y": 1240,
+    "x": 1650,
+    "y": 1100,
     "wires": []
   },
   {
@@ -100,7 +100,7 @@
     "type": "function",
     "z": "7f1ddb83788c4219",
     "name": "获取交付进度-成功",
-    "func": "var logo_link = msg.payload.data.backdropPictures.backdropPicture\nvar orderStatusName = msg.payload.data.statusInfo.orderStatusName\nvar delivery_time = msg.payload.data.orderTimeInfo.deliveryTime\nvar add_time = msg.payload.data.orderTimeInfo.addTime\nvar pay_time = msg.payload.data.orderTimeInfo.payTime\nvar lock_time = msg.payload.data.orderTimeInfo.lockTime\nvar goods_names = msg.payload.data.orderItem.map(item => item.goodsName || \"\").join(\"|\");\n\nglobal.set(\"error_times\", 0)\nglobal.set(\"deliveryTimeLatest\", delivery_time)\n\nvar text = `📦 交付进度：${orderStatusName}，${delivery_time}\\n\\n📅 下定时间：${add_time}\\n💳 支付时间：${pay_time}\\n🔒 锁单时间：${lock_time}\\n\\n🛍️ 配置：${goods_names}`\nvar msg = { \"delivery_time\": delivery_time, \"logo_link\": logo_link, \"text\": text }\nreturn msg;",
+    "func": "var logo_link = msg.payload.data.backdropPictures.backdropPicture\nvar orderStatusName = msg.payload.data.statusInfo.orderStatusName\nvar delivery_time = msg.payload.data.orderTimeInfo.deliveryTime\nvar add_time = msg.payload.data.orderTimeInfo.addTime\nvar pay_time = msg.payload.data.orderTimeInfo.payTime\nvar lock_time = msg.payload.data.orderTimeInfo.lockTime\nvar goods_names = msg.payload.data.orderItem.map(item => item.goodsName || \"\").join(\"|\");\n\nglobal.set(\"error_times\", 0)\nglobal.set(\"deliveryTimeLatest\", delivery_time)\n\nvar text = `${global.get(\"delivery_date_range\")}\\n\\n📅 下定时间：${add_time}\\n💳 支付时间：${pay_time}\\n🔒 锁单时间：${lock_time}\\n\\n🛍️ 配置：${goods_names}${global.get(\"carshop_notice_text\")}`\nvar msg = { \"delivery_time\": delivery_time, \"logo_link\": logo_link, \"text\": text, \"orderStatusName\": orderStatusName }\nreturn msg;",
     "outputs": 1,
     "timeout": 0,
     "noerr": 0,
@@ -116,7 +116,7 @@
     "type": "function",
     "z": "7f1ddb83788c4219",
     "name": "构建bark请求",
-    "func": "var logo_link = msg.logo_link\nvar message = msg.text\nvar token = global.get(\"device_token\")\nmsg.url =`https://api.day.app/${token}`\nvar data = {\n    \"body\": message + \"\\n\\n    -from Node-Red\",\n    \"title\": `小米汽车交付进度查询(${global.get(\"current_time\")})`,\n    \"icon\": logo_link,\n    \"group\": \"test\",\n    \"isArchive\": 1,\n}\nconst data_json = JSON.stringify(data);\nmsg.headers = {\n    \"Content-Type\": \"application/json; charset=utf-8\",\n}\n\nmsg.payload = data_json\nreturn msg;",
+    "func": "var logo_link = msg.logo_link\nvar message = msg.text\nvar token = global.get(\"device_token\")\nvar remarks_text = \" \".repeat(50) + global.get(\"remarks\")\nmsg.url =`https://api.day.app/${token}`\n\nvar data = {\n    \"body\": message + \"\\n\\n\" + remarks_text,\n    \"title\": `【小米汽车】${msg.orderStatusName}(${global.get(\"current_time\")})`,\n    \"subtitle\" :`📦 交付进度：${msg.delivery_time}`,\n    \"icon\": logo_link,\n    \"group\": \"test\",\n    \"isArchive\": 1,\n}\nconst data_json = JSON.stringify(data);\nmsg.headers = {\n    \"Content-Type\": \"application/json; charset=utf-8\",\n}\n\nmsg.payload = data_json\nmsg.carshopNotice = global.get(\"carshopNotice\")\nreturn msg;",
     "outputs": 1,
     "timeout": "",
     "noerr": 0,
@@ -125,7 +125,7 @@
     "libs": [],
     "x": 990,
     "y": 1020,
-    "wires": [["55e5e6e4509875ed", "807ec75ec32fb1a8"]]
+    "wires": [["807ec75ec32fb1a8", "d39f0ec600af903e"]]
   },
   {
     "id": "33ea869f05505a35",
@@ -197,7 +197,7 @@
     "type": "function",
     "z": "7f1ddb83788c4219",
     "name": "获取交付进度-失败",
-    "func": "var error_times_update = global.get(\"error_times\") + 1\nvar logo_link = \"https://upload.wikimedia.org/wikipedia/commons/4/4f/Xiaomi_EV_New.jpg\"\nglobal.set(\"error_times\", error_times_update)\nvar delivery_time = \"请检查参数是否正确！\"\nvar orderId = global.get(\"orderId\")\nvar userId = global.get(\"userId\")\nvar userId = global.get(\"userId\")\nvar cookie = global.get(\"cookie\")\n\nglobal.set(\"deliveryTimeLatest\", delivery_time)\nvar text = `失败次数：${global.get(\"error_times\")}\\norderId：${orderId}\\nuserId：${userId}\\nCookie：${cookie}\\n【失败次数超过3次后将停止发送】`\nvar msg = { \"delivery_time\": delivery_time, \"logo_link\": logo_link, \"text\": text }\nreturn msg;",
+    "func": "var error_times_update = global.get(\"error_times\") + 1\nvar logo_link = \"https://upload.wikimedia.org/wikipedia/commons/4/4f/Xiaomi_EV_New.jpg\"\nglobal.set(\"error_times\", error_times_update)\nvar delivery_time = \"请检查account参数是否正确！\"\nvar orderId = global.get(\"orderId\")\nvar userId = global.get(\"userId\")\nvar userId = global.get(\"userId\")\nvar cookie = global.get(\"cookie\")\n\nglobal.set(\"deliveryTimeLatest\", delivery_time)\nvar text = `失败次数：${global.get(\"error_times\")}\\norderId：${orderId}\\nuserId：${userId}\\nCookie：${cookie}\\n【失败次数超过3次后将停止发送】`\nvar msg = { \"delivery_time\": delivery_time, \"logo_link\": logo_link, \"text\": text }\nreturn msg;",
     "outputs": 1,
     "timeout": "",
     "noerr": 0,
@@ -241,7 +241,7 @@
     "type": "function",
     "z": "7f1ddb83788c4219",
     "name": "设定全局变量",
-    "func": "global.set(\"orderId\",msg.payload.orderId) \nglobal.set(\"userId\",msg.payload.userId) \nglobal.set(\"Cookie\",msg.payload.Cookie) \nglobal.set(\"device_token\", msg.payload.device_token) \nglobal.set(\"deliveryTimeLatest_old\", msg.payload.deliveryTimeLatest)\nglobal.set(\"error_times\", msg.payload.error_times)\nreturn msg;",
+    "func": "global.set(\"orderId\",msg.payload.account.orderId) \nglobal.set(\"userId\",msg.payload.account.userId) \nglobal.set(\"Cookie\",msg.payload.account.Cookie) \nglobal.set(\"carshopCookie\",msg.payload.account.carshopCookie) \nglobal.set(\"device_token\", msg.payload.account.deviceToken) \n\n\nglobal.set(\"deliveryTimeLatest_old\", msg.payload.notice.deliveryTimeLatest)\nglobal.set(\"carshopNotice_old\", msg.payload.notice.carshopNotice)\nglobal.set(\"remarks\", msg.payload.notice.remarks)\nglobal.set(\"error_times\", msg.payload.notice.errorTimes)\n\nreturn msg;",
     "outputs": 1,
     "timeout": 0,
     "noerr": 0,
@@ -250,7 +250,7 @@
     "libs": [],
     "x": 1220,
     "y": 520,
-    "wires": [["a6be38f0a49f434b"]]
+    "wires": [["ca567da008ab8f78"]]
   },
   {
     "id": "33a0c978b27892cc",
@@ -272,7 +272,7 @@
     "type": "function",
     "z": "7f1ddb83788c4219",
     "name": "更新配置文件",
-    "func": "\nmsg.payload = {\n    \"orderId\": global.get(\"orderId\"),\n    \"userId\": global.get(\"userId\"),\n    \"Cookie\": global.get(\"Cookie\"),\n    \"device_token\": global.get(\"device_token\"),\n    \"deliveryTimeLatest\":global.get(\"deliveryTimeLatest\"),\n    \"error_times\":global.get(\"error_times\")\n\n}\nreturn msg;",
+    "func": "\nmsg.payload = {\n    \"account\": {\n        \"orderId\": global.get(\"orderId\"),\n        \"userId\": global.get(\"userId\"),\n        \"Cookie\": global.get(\"Cookie\"),\n        \"carshopCookie\": global.get(\"carshopCookie\"),\n        \"deviceToken\": global.get(\"device_token\"),\n    },\n    \"notice\": {\n        \"deliveryTimeLatest\": global.get(\"deliveryTimeLatest\"),\n        \"carshopNotice\": global.get(\"carshopNotice\"),\n        \"remarks\": global.get(\"remarks\"),\n        \"errorTimes\":global.get(\"error_times\"),\n        \n    } \n}\nreturn msg;",
     "outputs": 1,
     "timeout": 0,
     "noerr": 0,
@@ -300,13 +300,11 @@
     "type": "switch",
     "z": "7f1ddb83788c4219",
     "name": "",
-    "property": "deliveryTimeLatest_old",
-    "propertyType": "global",
+    "property": "changed",
+    "propertyType": "msg",
     "rules": [
       {
-        "t": "neq",
-        "v": "delivery_time",
-        "vt": "msg"
+        "t": "true"
       },
       {
         "t": "else"
@@ -315,8 +313,8 @@
     "checkall": "true",
     "repair": false,
     "outputs": 2,
-    "x": 1170,
-    "y": 1020,
+    "x": 1230,
+    "y": 1040,
     "wires": [["33ea869f05505a35"], ["694f9f2ef05dbcb8"]]
   },
   {
@@ -447,8 +445,8 @@
     "from": "",
     "to": "",
     "reg": false,
-    "x": 1330,
-    "y": 1060,
+    "x": 1370,
+    "y": 1080,
     "wires": [["ad7a46b756a429f0"]]
   },
   {
@@ -476,22 +474,194 @@
     "outputProperties": [],
     "x": 2070,
     "y": 780,
-    "wires": [["f05f07c219094c77"]]
+    "wires": [[]]
   },
   {
-    "id": "f05f07c219094c77",
+    "id": "0383f5e3124a9a6e",
+    "type": "http request",
+    "z": "7f1ddb83788c4219",
+    "name": "get_carshop_info",
+    "method": "POST",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 1590,
+    "y": 480,
+    "wires": [["b7840501c3bdc6c2"]]
+  },
+  {
+    "id": "ca567da008ab8f78",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "参数设置",
+    "func": "msg.url =\"https://carshop-api.retail.xiaomiev.com/mtop/carlife/product/info\"\n\nvar data = [{}, {\"productId\": \"21452\", \"servicePackageVersion\": 2}]\nconst data_json = JSON.stringify(data);\nmsg.payload = data_json\n\nmsg.headers = {\n        \"User-Agent\": \"Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MIOTStore/20191212 (micar;1.16.2;f37b2fb7-33c7-4295-9d4b-a5d29881b7f5;NaNI;00000000-0000-0000-0000-000000000000;)\",\n        \"Content-Type\": \"application/json\",\n        \"referer\": \"https://carshop-api.retail.xiaomiev.com\",\n        \"x-mishop-app-source\": \"front-RN\",\n        \"x-user-agent\": \"channel/car platform/carlife.ios\",\n        \"mishop-model\": \"iPhone15,3\",\n        \"accept-language\": \"zh-CN,zh-Hans;q=0.9\",\n        \"Cookie\": global.get(\"carshopCookie\"),\n    }\n\n\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1420,
+    "y": 480,
+    "wires": [["0383f5e3124a9a6e"]]
+  },
+  {
+    "id": "b7840501c3bdc6c2",
+    "type": "switch",
+    "z": "7f1ddb83788c4219",
+    "name": "",
+    "property": "payload.data.product",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "hask",
+        "v": "notice",
+        "vt": "str"
+      },
+      {
+        "t": "else"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 2,
+    "x": 1770,
+    "y": 480,
+    "wires": [["89fde5a634c0e50b"], ["d088ae23eab5c4a8"]]
+  },
+  {
+    "id": "89fde5a634c0e50b",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "设置carshop_notice_text",
+    "func": "var notice = msg.payload.data.product.notice\nglobal.set(\"carshopNotice\",notice)\n\nif(notice == \"账号内暂无绑定车辆，请先绑定再来购买\") {\n  var carshop_notice_text = `\\n\\n🛒 无忧服务包状态：${notice} 【状态无更新】`\n  global.set('carshop_notice_text', carshop_notice_text)\n}\nelse{\n  var carshop_notice_text = `\\n\\n🛒 无忧服务包状态：${notice} 【状态有更新，可以问问交付专员！】`\n  global.set('carshop_notice_text', carshop_notice_text)\n}\n\n\nmsg.text = { \"notice\": notice, \"carshop_notice_text\": carshop_notice_text }\nreturn msg",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1770,
+    "y": 560,
+    "wires": [["a6be38f0a49f434b"]]
+  },
+  {
+    "id": "ada3820b628c9217",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "set delivery_date_range",
+    "func": "// 首先确保在Node-RED的设置中加载了moment\n\nvar delivery_time = msg.payload.data.orderTimeInfo.deliveryTime\nvar add_time = msg.payload.data.orderTimeInfo.addTime\nvar pay_time = msg.payload.data.orderTimeInfo.payTime\nvar lock_time = msg.payload.data.orderTimeInfo.lockTime\n\nfunction calculateDeliveryDate(deliveryTime, lockTime) {\n    // 检查输入参数，确保其有效\n    if (!deliveryTime || !lockTime) {\n        return \"输入参数无效\"; // 或者其他你希望的默认输出\n    }\n\n    // 提取周数信息\n    const weeksPattern = /(\\d+)-(\\d+)周/g;\n    const weeksMatches = deliveryTime.match(weeksPattern);\n\n    if (!weeksMatches || weeksMatches.length === 0) {\n        return \"\";\n    }\n\n    const lastMatch = weeksMatches[weeksMatches.length - 1].match(/(\\d+)-(\\d+)周/);\n    const minWeeks = parseInt(lastMatch[1]);\n    const maxWeeks = parseInt(lastMatch[2]);\n\n    // 默认使用第2个周数范围的结果和当前日期做比较\n    let currentDate = new Date();\n\n    // 如果只存在1个周数范围结果，则使用第1个周数范围的结果和锁单日期做比较\n    if (weeksMatches.length === 1) {\n        currentDate = lock_time;\n    }\n\n    // 计算交付日期范围\n    let minfutureDate = new Date(currentDate);\n    minfutureDate.setDate(currentDate.getDate() + minWeeks * 7); // 加上周数的天数\n    let maxfutureDate = new Date(currentDate);\n    maxfutureDate.setDate(currentDate.getDate() + maxWeeks * 7); // 加上周数的天数\n    // 格式化为 YYYY-MM-DD\n    function formatDate(date) {\n        const year = date.getFullYear();\n        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需加1\n        const day = String(date.getDate()).padStart(2, '0');\n        return `${year}-${month}-${day}`;\n    }\n    minfutureDate = formatDate(minfutureDate)\n    maxfutureDate = formatDate(maxfutureDate)\n    var delivery_date_range = `⏳ 预计提车日期：${minfutureDate} 至 ${maxfutureDate}`\n    return delivery_date_range;\n}\n\n// 使用示例\nmsg = {}\nmsg.delivery_time = delivery_time\nmsg.lock_time = lock_time\nvar delivery_date_range = calculateDeliveryDate(delivery_time, lock_time);\nmsg.payload = delivery_date_range\nglobal.set(\"delivery_date_range\", delivery_date_range)\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1590,
+    "y": 700,
+    "wires": [[]]
+  },
+  {
+    "id": "03cc0295c5b71e47",
     "type": "debug",
     "z": "7f1ddb83788c4219",
-    "name": "debug 401",
+    "name": "debug 405",
     "active": true,
     "tosidebar": true,
     "console": false,
     "tostatus": false,
-    "complete": "false",
+    "complete": "payload",
+    "targetType": "msg",
     "statusVal": "",
     "statusType": "auto",
-    "x": 2230,
-    "y": 740,
+    "x": 1690,
+    "y": 340,
+    "wires": []
+  },
+  {
+    "id": "1015822ac8af2633",
+    "type": "change",
+    "z": "7f1ddb83788c4219",
+    "name": "carshopCookie的错误提醒",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "已检测到存在carshopCookie，但是无法获取数据",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 1470,
+    "y": 340,
+    "wires": [["03cc0295c5b71e47"]]
+  },
+  {
+    "id": "d088ae23eab5c4a8",
+    "type": "change",
+    "z": "7f1ddb83788c4219",
+    "name": "",
+    "rules": [
+      {
+        "t": "set",
+        "p": "carshop_notice_text",
+        "pt": "global",
+        "to": "",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 1190,
+    "y": 340,
+    "wires": [["1015822ac8af2633"]]
+  },
+  {
+    "id": "d39f0ec600af903e",
+    "type": "function",
+    "z": "7f1ddb83788c4219",
+    "name": "function 23",
+    "func": "// 假设这些变量已经在 msg 中定义\nlet delivery_time = msg.delivery_time;\nlet old_delivery_time = global.get(\"deliveryTimeLatest_old\");\nlet carshop_notice = global.get(\"carshopNotice\")\nlet old_carshop_notice = global.get(\"carshopNotice_old\");\n\n// 检查条件\nif ((delivery_time !== old_delivery_time) || (carshop_notice !== old_carshop_notice)) {\n    // 如果条件为真，可以执行一些操作\n    msg.changed = true; // 例如，设置一个标志\n} else {\n    msg.changed = false; // 如果没有变化\n}\nmsg.delivery_time = delivery_time\nmsg.old_delivery_time = old_delivery_time\nmsg.carshop_notice = carshop_notice\nmsg.old_carshop_notice = old_carshop_notice\n\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1070,
+    "y": 1100,
+    "wires": [["55e5e6e4509875ed", "d77b0860fc6d8544"]]
+  },
+  {
+    "id": "d77b0860fc6d8544",
+    "type": "debug",
+    "z": "7f1ddb83788c4219",
+    "name": "debug 406",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1230,
+    "y": 1140,
     "wires": []
   },
   {

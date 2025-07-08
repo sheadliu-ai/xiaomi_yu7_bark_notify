@@ -1,8 +1,12 @@
-[api]
+[account]
 orderId = ""
 userId = ""
 Cookie = ""
-device_token = ""
+carshopCookie = ""
+deviceToken = ""
+
+[notice]
 deliveryTimeLatest = ""
-error_times = 0
+carshopNotice = ""
 remarks = "                              --来自Github Action"
+errorTimes = 0
