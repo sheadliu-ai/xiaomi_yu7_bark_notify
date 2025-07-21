@@ -165,7 +165,7 @@ def get_carshop_info(Cookie):
     notice = response.json().get("data", {}).get("product", {}).get("notice", None)
     if not notice:
         return None, None
-    if notice == "账号内暂无绑定车辆，请先绑定再来购买":
+    if notice in ["账号内暂无绑定车辆，请先绑定再来购买", "暂不符合购买条件"]:
         notice_text = notice + "【状态无更新】"
     else:
         notice_text = notice + "【状态有更新，可以问问交付专员！】"
@@ -177,17 +177,25 @@ def get_carshop_info(Cookie):
 def save_config(delivery_time, carshop_notice=None, error_times=0):
     # 先加载当前的配置
     config = toml.load(config_path)
+
     if args.cookie:
-        config["account"]["orderId"] = ""
-        config["account"]["userId"] = ""
-        config["account"]["Cookie"] = ""
-        config["account"]["carshopCookie"] = ""
-        config["account"]["deviceToken"] = ""
+        account = {
+            "orderId": "",
+            "userId": "",
+            "Cookie": "",
+            "carshopCookie": "",
+            "deviceToken": "",
+        }
+        config["account"] = account
 
     # 更新 deliveryTimeLatest 和 carshopNotice
-    config["notice"]["deliveryTimeLatest"] = delivery_time
-    config["notice"]["carshopNotice"] = carshop_notice if carshop_notice else ""
-    config["notice"]["errorTimes"] = error_times
+    notice = {
+        "deliveryTimeLatest": delivery_time,
+        "carshopNotice": carshop_notice if carshop_notice else "",
+        "remarks": config["notice"]["remarks"],
+        "errorTimes": error_times,
+    }
+    config["notice"] = notice
 
     # 写入更新后的配置到文件
     with open(config_path, "w", encoding="utf-8") as f:
