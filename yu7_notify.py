@@ -165,7 +165,7 @@ def get_carshop_info(Cookie):
     notice = response.json().get("data", {}).get("product", {}).get("notice", None)
     if not notice:
         return None, None
-    if notice in ["账号内暂无绑定车辆，请先绑定再来购买", "暂不符合购买条件"]:
+    if notice in ["账号内暂无绑定车辆，请绑定后再来购买", "暂不符合购买条件"]:
         notice_text = notice + "【状态无更新】"
     else:
         notice_text = notice + "【状态有更新，可以问问交付专员！】"
