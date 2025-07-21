@@ -1,7 +1,9 @@
 一个可以自动获取小米 YU7 交付进度，通过 Bark 通知给用户的脚本。
 
 > 支持 Github Action / 青龙面板 / Node-RED 设置定时查询
+
 > 根据预计交付周数转换为预计提车日期
+
 > 集成无忧服务包状态提示
 
 ![img](/img/para_succeed.jpg)
@@ -32,18 +34,22 @@ on:
    > 如果不设置允许的话，会导致 workflows 无法更新配置文件
 
 3. 在 repo Settings > Security > Secrets > secrets and variables > Actions > New repository secret > 增加:
-   ORDERID、USERID、COOKIE、CARSHOPCOOKIE、DEVICE_TOKEN 这 5 个变量
+
+   `ORDERID`、`USERID`、`COOKIE`、`CARSHOPCOOKIE`、`DEVICE_TOKEN` 这 5 个变量
 
    ![img](/img/添加变量.png)
 
-4. ORDERID、USERID、COOKIE 获取方法：
+4. `ORDERID`、`USERID`、`COOKIE` 获取方法：
+
    使用[Reqable](https://reqable.com/zh-CN)等抓包工具，抓取`小米汽车微信小程序`
+
    查看：`https://api.retail.xiaomiev.com/mtop/car-order/order/detail`
 
-- ORDERID、USERID 的获取：
+- `ORDERID`、`USERID` 的获取：
+
   ![img](/img/1.png)
 
-- COOKIE 的获取
+- `COOKIE` 的获取
 
 > 注意：COOKIE 变量在粘贴到 github action 时，首尾要添加`"`符号
 
@@ -52,8 +58,11 @@ on:
 5. CARSHOPCOOKIE 获取方法：
 
    使用[Reqable](https://reqable.com/zh-CN)等抓包工具，抓取`小米汽车App`
+
    查看：`https://carshop-api.retail.xiaomiev.com/mtop/carlife/product/info`
+
    搜索“延保”，查询“原始”的 Cookie
+
    ![img](/img/4.png)
 
 6. DEVICE_TOKEN 的获取
@@ -74,6 +83,7 @@ on:
 2. 复制文件
 
 - 需复制文件：yu7_notify.py、configBAK.toml（需手动改名为 config.toml）
+
 - 修改 config.toml 当中的 orderId、userId、Cookie、device_token（取值来源可参考上文）
   ![img](/img/ql-2.1.png)
   ![img](/img/ql-2.2.png)
@@ -82,6 +92,7 @@ on:
 
 3. 调试脚本（可选）
    ![img](/img/ql-3.1.png)
+
    ![img](/img/ql-3.2.png)
 
 > 如果依赖安装正常、账号参数正确，则会输出对应的日志提示
@@ -105,7 +116,9 @@ on:
 1. 前置步骤：
 
 - 你的 ha 和 NR 已经完成连接
+
 - 已在 NR 当中安装`Node-RED-contrib-http-request`这个节点
+
 - 已将对应的 HA server 更换为你自己的配置
 
 2. NR 导入文件`yu7_notify.json`
