@@ -14,19 +14,13 @@
 
 如果你想通过 Github Action 来实现定时获取数据，可进行以下步骤
 
-1. fork 本项目到你自己的仓库，然后修改 fork 仓库内的 `.github/workflows/run_notify_sync.yml`文件，以下内容改为你自己的 github 信息。
+1. fork 本项目到你自己的仓库，然后修改 fork 仓库内的 `.github/workflows/run_notify_sync.yml`文件，以下内容改为你自己的 github 信息（可选）。
+   
 
-```
-env:
-  GITHUB_NAME: arthurfsy2 （修改成你的github名称）
-  GITHUB_EMAIL: fsyflh@gmail.com （修改为你的github账号邮箱）
-```
+```bash
+# 默认执行时间是每5分钟会自动执行脚本。
 
-    默认执行时间是每5分钟会自动执行脚本。
-
-    如需修改时间，可修改以下代码的`cron`
-
-```
+# 如需修改时间，可修改以下代码的`cron`
 on:
   workflow_dispatch:
   schedule:
