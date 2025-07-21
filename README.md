@@ -59,7 +59,7 @@ on:
 
    使用[Reqable](https://reqable.com/zh-CN)等抓包工具，抓取`小米汽车App`
    查看：`https://carshop-api.retail.xiaomiev.com/mtop/carlife/product/info`
-
+   搜索“延保”，查询“原始”的 Cookie
    ![img](/img/4.png)
 
 6. DEVICE_TOKEN 的获取
