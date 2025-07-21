@@ -7,6 +7,6 @@ deviceToken = ""
 
 [notice]
 deliveryTimeLatest = "锁定订单后预计23-26周交付，预计还需20-23周"
-carshopNotice = "账号内暂无绑定车辆，请先绑定再来购买"
+carshopNotice = "暂不符合购买条件"
 remarks = "--来自Github Action"
 errorTimes = 0
