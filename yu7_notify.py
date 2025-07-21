@@ -111,7 +111,7 @@ def get_order_detail(orderId, userId, Cookie):
     delivery_time = orderTimeInfo.get("deliveryTime")
 
     notice_text = (
-        f"\n\n🛒 无忧服务包状态：{carshop_notice_text}" if carshop_notice else ""
+        f"\n\n🛒 延保服务状态：{carshop_notice_text}" if carshop_notice else ""
     )
     remarks_text = " " * 50 + remarks
 
@@ -148,7 +148,7 @@ def get_carshop_info(Cookie):
 
     url = "https://carshop-api.retail.xiaomiev.com/mtop/carlife/product/info"
 
-    payload = [{}, {"productId": "21452", "servicePackageVersion": 2}]
+    payload = [{}, {"productId": "21430", "servicePackageVersion": 2}]
 
     headers = {
         "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MIOTStore/20191212 (micar;1.16.2;f37b2fb7-33c7-4295-9d4b-a5d29881b7f5;NaNI;00000000-0000-0000-0000-000000000000;)",
@@ -245,7 +245,7 @@ def main():
         else:
             print("消息发送失败。")
     else:
-        print("交付时间/无忧服务包状态没有更新。")
+        print("交付时间/延保服务状态没有更新。")
 
 
 if __name__ == "__main__":
