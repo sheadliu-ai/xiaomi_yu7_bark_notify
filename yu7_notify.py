@@ -33,6 +33,7 @@ def load_config():
             config["notice"]["carshopNotice"],
             config["notice"]["remarks"],
             config["notice"]["errorTimes"],
+            config["notice"]["orderStatus"],
         )
 
     try:
@@ -51,6 +52,7 @@ def load_config():
             config["notice"]["carshopNotice"],
             config["notice"]["remarks"],
             config["notice"]["errorTimes"],
+            config["notice"]["orderStatus"],
         )
     except:
         print("请检查config.toml文件的参数是否完整/正确！")
@@ -102,16 +104,21 @@ def get_order_detail(orderId, userId, Cookie):
     }
 
     response = requests.post(url, data=json.dumps(payload), headers=headers)
+
     data = response.json().get("data", {})
     logo_link = data.get("backdropPictures", {}).get("backdropPicture", None)
     statusInfo = data.get("statusInfo", {})
     orderTimeInfo = data.get("orderTimeInfo", {})
-    orderStatusName = statusInfo.get("orderStatusName", None)
 
+    order_status_name = statusInfo.get("orderStatusName", None)
+    order_status = statusInfo.get("orderStatus")
     delivery_time = orderTimeInfo.get("deliveryTime")
 
     notice_text = (
         f"\n\n🛒 延保服务状态：{carshop_notice_text}" if carshop_notice else ""
+    )
+    order_status_text = (
+        f"🛠️ orderStatus：{order_status}【{order_status_mapping(str(order_status))}】"
     )
     remarks_text = " " * 50 + remarks
 
@@ -119,10 +126,13 @@ def get_order_detail(orderId, userId, Cookie):
         delivery_time = "请检查account参数是否正确！"
         error_times_update = error_times + 1
 
-        message = f"{delivery_time}\n\n失败次数：{error_times_update}\norderId：{orderId}\nuserId：{userId}\nCookie：{Cookie}\n【失败次数超过3次后将停止发送】\n\n{remarks_text}"
+        message = f"{delivery_time}\n\n失败次数：{error_times_update}\norderId：{orderId}\nuserId：{userId}\nCookie：{Cookie}\n【失败次数超过3次后将停止发送】\n\n{remarks_text}\n\n{order_status}"
 
         save_config(
-            delivery_time, carshop_notice=carshop_notice, error_times=error_times_update
+            delivery_time,
+            order_status,
+            carshop_notice=carshop_notice,
+            error_times=error_times_update,
         )
         if error_times_update <= 3:
             send_bark_message(device_token, message, orderStatusName="account参数错误")
@@ -136,10 +146,16 @@ def get_order_detail(orderId, userId, Cookie):
         item.get("goodsName", "") for item in data.get("orderItem", [])
     )
     delivery_date_range = calculate_delivery_date(delivery_time, lock_time)
-    text = f"{delivery_date_range}\n\n📅 下定时间：{add_time}\n💳 支付时间：{pay_time}\n🔒 锁单时间：{lock_time}\n\n🛍️ 配置：{goods_names}{notice_text}\n\n{remarks_text}"
+    text = f"{delivery_date_range}\n\n📅 下定时间：{add_time}\n💳 支付时间：{pay_time}\n🔒 锁单时间：{lock_time}\n\n🛍️ 配置：{goods_names}{notice_text}\n\n{order_status_text}\n\n{remarks_text}"
     # print(text)
 
-    return delivery_time, text, orderStatusName, logo_link
+    return delivery_time, order_status, text, order_status_name, logo_link
+
+
+def order_status_mapping(code):
+    mapping_lists = {"2520": "未下线", "2605": "已下线", "3000": "已下线并运出"}
+    text = mapping_lists.get(code)
+    return text
 
 
 def get_carshop_info(Cookie):
@@ -174,7 +190,7 @@ def get_carshop_info(Cookie):
     return notice, notice_text
 
 
-def save_config(delivery_time, carshop_notice=None, error_times=0):
+def save_config(delivery_time, order_status, carshop_notice=None, error_times=0):
     # 先加载当前的配置
     config = toml.load(config_path)
 
@@ -194,6 +210,7 @@ def save_config(delivery_time, carshop_notice=None, error_times=0):
         "carshopNotice": carshop_notice if carshop_notice else "",
         "remarks": config["notice"]["remarks"],
         "errorTimes": error_times,
+        "orderStatus": order_status,
     }
     config["notice"] = notice
 
@@ -202,14 +219,14 @@ def save_config(delivery_time, carshop_notice=None, error_times=0):
         toml.dump(config, f)
 
 
-def send_bark_message(token, message, logo_link=None, orderStatusName=None):
+def send_bark_message(token, message, logo_link=None, order_status_name=None):
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     icon_link = "https://upload.wikimedia.org/wikipedia/commons/4/4f/Xiaomi_EV_New.jpg"
     if logo_link:
         icon_link = logo_link
-    if orderStatusName:
-        title = f"【小米汽车】{orderStatusName}({current_time})"
+    if order_status_name:
+        title = f"【小米汽车】{order_status_name}({current_time})"
     else:
         title = f"【小米汽车】进度查询({current_time})"
 
@@ -238,14 +255,20 @@ def send_bark_message(token, message, logo_link=None, orderStatusName=None):
 
 
 def main():
-    if (delivery_time != old_delivery_time) or (carshop_notice != old_carshop_notice):
-        save_config(delivery_time, carshop_notice=carshop_notice)  # 更新配置文件
-        if send_bark_message(device_token, message, logo_link, orderStatusName):
+    if (
+        (delivery_time != old_delivery_time)
+        or (carshop_notice != old_carshop_notice)
+        or (order_status != old_order_status)
+    ):
+        save_config(
+            delivery_time, order_status, carshop_notice=carshop_notice
+        )  # 更新配置文件
+        if send_bark_message(device_token, message, logo_link, order_status_name):
             print("消息已发送成功！")
         else:
             print("消息发送失败。")
     else:
-        print("交付时间/延保服务状态没有更新。")
+        print("交付时间/延保服务/orderStatus状态没有更新。")
 
 
 if __name__ == "__main__":
@@ -273,10 +296,11 @@ if __name__ == "__main__":
         old_carshop_notice,
         remarks,
         error_times,
+        old_order_status,
     ) = load_config()
     carshop_notice, carshop_notice_text = get_carshop_info(carshop_cookie)
-    delivery_time, message, orderStatusName, logo_link = get_order_detail(
-        orderId, userId, Cookie
+    delivery_time, order_status, message, order_status_name, logo_link = (
+        get_order_detail(orderId, userId, Cookie)
     )
 
     main()
