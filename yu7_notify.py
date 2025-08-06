@@ -153,7 +153,7 @@ def get_order_detail(orderId, userId, Cookie):
 
 
 def order_status_mapping(code):
-    mapping_lists = {"2520": "未下线", "2605": "已下线", "3000": "已下线并运出"}
+    mapping_lists = {"2520": "未下线", "2605": "已下线", "3000": "已运发"}
     text = mapping_lists.get(code)
     return text
 
